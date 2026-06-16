@@ -1,0 +1,12 @@
+{
+  "name": "lupus-takvimi",
+  "version": "1.0.0",
+  "description": "Topluluk Zaman Çizelgesi Takvimi",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
