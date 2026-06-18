@@ -78,15 +78,7 @@ app.delete('/gorev-sil/:id', (req, res) => {
     res.sendStatus(200);
 });
 
-app.post('/akademik-takvim-yukle', (req, res) => {
-    hazirAkademikTakvim.forEach(etkinlik => {
-        const yeniEtkinlik = { ...etkinlik, id: Date.now().toString() + Math.random().toString().substring(2, 6) };
-        gorevlerListesi.push(yeniEtkinlik);
-    });
-    
-    verilereKaydet(); // AKADEMİK TAKVİMİ DE DOSYAYA YAZ
-    res.sendStatus(200);
-});
+
 
 app.listen(PORT, () => {
     console.log(`Sunucu kalıcı hafıza ile başlatıldı! http://localhost:${PORT}`);
