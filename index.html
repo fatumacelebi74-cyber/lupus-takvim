@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lupus Topluluk Takvimi</title>
+    <style>
+        /* Genel Sayfa Düzeni */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 25px;
+            background-color: #1e293b; /* Tam istediğiniz düz, koyu ve karizmatik Gece Mavisi tonu */ 
+            color: #1a202c;
+        }
+
+
+
+        h1 { 
+            text-align: center; 
+            color: #ffffff !important; /* Rengi kesin olarak beyaz yapar */
+            font-size: 34px;
+            margin-top: 20px;
+            margin-bottom: 25px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.15); /* Başlığın arkasına hafif parıltı ekler */
+        }
+
+        
+        /* Üst Kontrol Paneli */
+        .controls { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+            background: #ffffff;
+            padding: 18px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+        
+        /* YENİ NESİL KONTROL PANELİ BUTONLARI */
+        .btn { 
+            padding: 12px 24px; 
+            font-size: 14px; 
+            font-weight: 700;
+            cursor: pointer; 
+            background-color: #ffffff; 
+            color: #475569; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 12px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Önceki ve Sonraki Butonlarına Üzerine Gelince Canlı Mavi Efekti */
+        .btn:hover { 
+            background-color: #f8fafc; 
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        }
+
+        /* + Görev / Süreç Ekle Butonunun Yeni Canlı Tasarımı */
+        .btn-add { 
+            background: linear-gradient(135deg, #2563eb, #1d4ed8) !important; /* Derin Elektrik Mavisi */
+            color: white !important; 
+            border: none !important; 
+            padding: 14px 28px;
+            font-size: 15px;
+            font-weight: 800;
+            border-radius: 14px;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4) !important;
+            letter-spacing: 0.3px;
+        }
+
+        .btn-add:hover { 
+            background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6) !important;
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        /* Ay Başlığı Tasarımı */
+        #month-title { 
+            font-size: 24px; 
+            font-weight: 900; 
+            color: #0f172a;
+            margin: 0 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+
+        /* YENİ NESİL MODERN TAKVİM ARKA PLANI VE TABLO DÜZENİ */
+        .calendar-container { 
+            overflow-x: auto !important; 
+            background: #f8fafc; /* Tam beyaz yerine çok hafif mat, şık bir gri-mavi */
+            padding: 24px; 
+            border-radius: 24px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); 
+            border: 1px solid #e2e8f0;
+        }
+
+        table { 
+            border-collapse: separate; 
+            border-spacing: 4px; /* Hücrelerin arasındaki boşluğu hafifçe arttırdık */
+            width: 100%; 
+            min-width: 950px; 
+        }
+
+        th, td { 
+            border: none;
+            padding: 16px 12px; 
+            text-align: center; 
+            min-width: 50px; 
+            font-size: 14px;
+            border-radius: 10px; /* Hücre kenarlarını daha yumuşak ve oval yaptık */
+        }
+
+        /* Boş Gün Hücrelerinin Yeni Şık Görünümü */
+        td {
+            background-color: #ffffff; /* Boş hücreler bembeyaz parlayacak */
+            border: 1px solid #f1f5f9 !important; /* Etrafına çok hafif, zarif bir çerçeve */
+            color: #94a3b8;
+            transition: all 0.2s ease;
+        }
+
+        /* Boş hücrelerin üzerine gelince hafifçe belli olsun */
+        td:not(.row-header):not(.task-strip):not(.status-available):not(.status-busy):hover {
+            background-color: #f1f5f9; 
+            transform: scale(1.05);
+            z-index: 5;
+        }
+
+        /* Gün Başlıkları Satırı */
+        th { 
+            background-color: #e2e8f0; /* Üstteki gün sayılarının arka planını daha belirgin yaptık */
+            color: #334155;
+            font-weight: 800;
+            font-size: 13px;
+            padding: 12px;
+        }
+
+        /* Sol Taraftaki Sabit Başlık Sütunu Düzenlemesi */
+        .row-header { 
+            text-align: left; 
+            font-weight: 700; 
+            min-width: 260px; 
+            color: white !important; 
+            padding-left: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: none !important; /* Sol başlıkların çerçevesini kaldırdık */
+        }
+
+        
+        /* YENİ NESİL CANLI VE ÖZEL KATEGORİ RENKLERİ */
+        .group-member { 
+            background-color: #00d2ff !important; /* Elektrik Mavisi */
+            color: #003543 !important;
+        }   
+
+        .group-team { 
+            background-color: #ffe600 !important; /* Canlı Elektrik Sarısı */
+            color: #2b2600 !important;            /* Net Okunur Koyu Kontrast Yazı */
+        }
+ 
+        .group-academic { 
+            background-color: #ff007f !important; /* Şok Edici Canlı Pembe / Fuşya */
+            color: #ffffff !important;
+        } 
+
+        /* Görev Şeritlerinin Genel Tasarımı */
+        .task-strip {
+            font-weight: 700;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transform: scale(0.98);
+            transition: all 0.2s ease;
+        }
+        .task-strip:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        /* Görev Şeritlerinin İç Renk Kodları */
+        .task-member {
+            background-color: #e6faff !important; /* Çok Hafif Mavi Arka Plan */
+            color: #007791 !important;            /* Koyu Mavi Okunabilir Yazı */
+            border-left: 5px solid #00d2ff !important; /* Kenarda Elektrik Mavisi Çizgi */
+        }
+
+        .task-team {
+            background-color: #fffde6 !important; /* Çok Hafif Parlak Sarı Arka Plan */
+            color: #6a5d00 !important;            /* Koyu Altın/Zeytin Okunabilir Yazı */
+            border-left: 5px solid #ffe600 !important; /* Kenarda Canlı Elektrik Sarısı Çizgi */
+        }
+
+        .task-academic {
+            background-color: #ffe6f2 !important; /* Çok Hafif Pembe Arka Plan */
+            color: #b30059 !important;            /* Koyu Pembe Okunabilir Yazı */
+            border-left: 5px solid #ff007f !important; /* Kenarda Canlı Pembe Çizgi */
+        }
+
+        
+        
+        /* ORTAK MÜSAİTLİK YENİ CANLI RENKLER */
+        .status-available {
+            background-color: #c7eed8 !important; /* Soft Pastel Yeşil Arka Plan */
+            color: #1c5235 !important;            /* Net Okunur Koyu Yeşil Yazı */
+            font-weight: 800;
+            box-shadow: 0 2px 6px rgba(199, 238, 216, 0.4);
+        }
+
+
+
+        .status-busy {
+            background-color: #ff3131 !important; /* Neon Ateş Kırmızısı */
+            color: #ffffff !important;
+            font-weight: 800;
+            box-shadow: 0 2px 4px rgba(255, 49, 49, 0.3);
+        }
+
+        /* FİLTRELEME PANELİ STİLLERİ */
+        .filter-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .btn-filter {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 20px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        /* Aktif ve Pasif Durum Renkleri */
+        .filter-member { background-color: #00d2ff; color: #003543; }
+        .filter-team { background-color: #ffe600; color: #2b2600; }
+        .filter-academic { background-color: #ff007f; color: #ffffff; }
+        .btn-filter.pasif {
+            background-color: #475569 !important;
+            color: #94a3b8 !important;
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+
+        /* BUGÜNÜN GÜNÜ PARLAMA EFEKTİ */
+        .today-highlight {
+            background: linear-gradient(135deg, #ff007f, #7c3aed) !important; /* Canlı Pembe-Mor Geçişi */
+            color: #ffffff !important;
+            font-weight: 900 !important;
+            font-size: 15px !important;
+            border-radius: 50% !important; /* Yuvarlak şık bir buton gibi görünür */
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.6);
+            transform: scale(1.1);
+        }
+
+        /* MODERN BİLGİ BALONU (TOOLTIP) STİLİ */
+        .task-strip {
+            position: relative; /* Balonun hücreye göre konumlanması için */
+        }
+
+        /* KESİN ÇÖZÜM: AKILLI BİLGİ KUTUSU STİLİ */
+        #canvasTooltip {
+            position: fixed;
+            display: none;
+            background-color: #0f172a; /* Şık koyu gece grisi */
+            color: #f8fafc;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: pre-line;
+            width: 240px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+            z-index: 99999 !important; /* Her şeyin ama her şeyin en üstünde */
+            pointer-events: none; /* Fareyi engellememesi için */
+            line-height: 1.6;
+            border-left: 5px solid #3b82f6;
+        }
+
+
+        /* Fare hücrenin üzerine geldiğinde balonu göster ve büyüt */
+        .task-strip:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* SAĞA SOLA HIZLI KAYDIRMA OK BUTONLARI */
+        .scroll-btn-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-scroll {
+            padding: 10px 16px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #ffffff;
+            color: #1e293b;
+            border: 1px solid #cbd5e1;
+            border-radius: 50%; /* Yuvarlak şık butonlar */
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .btn-scroll:hover {
+            background-color: #3b82f6;
+            color: #ffffff;
+            border-color: #3b82f6;
+            transform: scale(1.05);
+        }
+
+
+
+
+
+    </style>
+</head>
+<body>
+    
+    <!-- Akıllı Bilgi Kutusu Elementi -->
+    <div id="canvasTooltip"></div>
+
+
+    <h1>Lupus Topluluk Takvimi</h1>
+ 
+    <!-- Filtreleme Paneli -->
+    <div class="filter-container">
+        <button type="button" class="btn-filter filter-member" id="filterMember" onclick="filtrele('member')">👁️ Üyeler</button>
+        <button type="button" class="btn-filter filter-team" id="filterTeam" onclick="filtrele('team')">👁️ Takımlar</button>
+        <button type="button" class="btn-filter filter-academic" id="filterAcademic" onclick="filtrele('academic')">👁️ Akademik</button>
+    </div>
+ 
+    <!-- 1. Üst Kontrol Paneli -->
+    <div class="controls">
+        <button class="btn">◀ Önceki Ay</button>
+        <span id="month-title">Ocak 2026</span>
+        <button class="btn">Sonraki Ay ▶</button>
+
+        <button class="btn btn-add">+ Görev / Süreç Ekle</button>
+    </div>
+
+
+    <!-- Sağa Sola Kaydırma Ok Butonları -->
+    <div class="scroll-btn-container">
+        <button type="button" class="btn-scroll" onclick="takvimiKaydir('sol')">◀</button>
+        <button type="button" class="btn-scroll" onclick="takvimiKaydir('sag')">▶</button>
+    </div>
+
+
+    <!-- 2. Ana Takvim Tablosu -->
+    <div class="calendar-container">
+        <table>
+            <thead>
+                <!-- Üst Satır: Günler -->
+                <tr>
+                    <th>Takip Listesi</th>
+                    <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+                    <th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th><th>18</th><th>19</th><th>20</th>
+                    <th>21</th><th>22</th><th>23</th><th>24</th><th>25</th><th>26</th><th>27</th><th>28</th><th>29</th><th>30</th><th>31</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <!-- 3. Alt Bölüm: Ortak Müsaitlik Durumu -->
+                <tr class="availability-row">
+                    <td>🧭 Ortak Müsaitlik</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td><td class="slot-available">Müsait</td><td class="slot-available">Müsait</td>
+                    <td class="slot-available">Müsait</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+<!-- 4. Görev / Süreç Ekleme Formu (Açılır Pencere) -->
+<div id="formModal" style="display:none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center;">
+    <div style="background-color: white; padding: 25px; border-radius: 8px; width: 400px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+        <h3 style="margin-top: 0;">Yeni Kayıt Ekle</h3>
+        <form id="taskForm">
+            <!-- Kayıt Türü Seçimi -->
+            <label style="display:block; margin-bottom: 5px; font-weight: bold;">Kayıt Türü:</label>
+            <select id="typeSelect" style="width: 100%; padding: 8px; margin-bottom: 15px;" required>
+                <option value="member">👤 Üye (Kişisel Görev)</option>
+                <option value="team">👥 Takım Süreci</option>
+                <option value="academic">📅 Okul Akademik Takvimi</option>
+            </select>
+
+            <!-- Dinamik Alanlar -->
+            <div id="dynamicFields">
+                <label style="display:block; margin-bottom: 5px; font-weight: bold;">Ad Soyad:</label>
+                <input type="text" id="fullName" style="width: 95%; padding: 8px; margin-bottom: 15px;" required>
+                
+                <label style="display:block; margin-bottom: 5px; font-weight: bold;">Üniversite / Fakülte / Bölüm:</label>
+                <input type="text" id="schoolInfo" placeholder="Örn: Selçuk Üni - Teknoloji Fak - Yazılım" style="width: 95%; padding: 8px; margin-bottom: 15px;" required>
+            </div>
+
+            <!-- Tarih Alanları -->
+            <label style="display:block; margin-bottom: 5px; font-weight: bold;">Başlangıç Tarihi:</label>
+            <input type="date" id="startDate" style="width: 95%; padding: 8px; margin-bottom: 15px;" >
+
+            <label style="display:block; margin-bottom: 5px; font-weight: bold;">Bitiş Tarihi:</label>
+            <input type="date" id="endDate" style="width: 95%; padding: 8px; margin-bottom: 15px;" >
+
+            <label style="display:block; margin-bottom: 5px; font-weight: bold;">Görev / Süreç Açıklaması:</label>
+            <textarea id="description" style="width: 95%; padding: 8px; margin-bottom: 15px;" rows="3" placeholder="Ne tür bir görev olduğunu yazınız..." ></textarea>
+
+            <!-- Butonlar -->
+            <div style="display: flex; justify-content: space-between;">
+                <button type="button" id="btnCancel" style="padding: 10px 20px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">İptal</button>
+                <button type="submit" style="padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Kaydet</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+   
+         // Sayfadaki elementleri seçelim
+    const btnAdd = document.querySelector('.btn-add');
+    const formModal = document.getElementById('formModal');
+    const btnCancel = document.getElementById('btnCancel');
+    const typeSelect = document.getElementById('typeSelect');
+    const dynamicFields = document.getElementById('dynamicFields');
+    const monthTitle = document.getElementById('month-title');
+    
+    // Ay butonlarını kesin olarak metinlerine göre seçelim
+    const butonlar = document.querySelectorAll('.controls .btn');
+    let btnPrev, btnNext;
+    butonlar.forEach(btn => {
+        if (btn.innerText.includes('Önceki')) btnPrev = btn;
+        if (btn.innerText.includes('Sonraki')) btnNext = btn;
+    });
+
+    // 2026 ve 2027 Yıllarının Tüm Ayları ve Gün Sayıları (Tam 24 Ay)
+    const aylar = [
+        // 2026 Yılı
+        { isim: "Ocak 2026", yil: 2026, ayNo: 0, gunSayisi: 31 },
+        { isim: "Şubat 2026", yil: 2026, ayNo: 1, gunSayisi: 28 },
+        { isim: "Mart 2026", yil: 2026, ayNo: 2, gunSayisi: 31 },
+        { isim: "Nisan 2026", yil: 2026, ayNo: 3, gunSayisi: 30 },
+        { isim: "Mayıs 2026", yil: 2026, ayNo: 4, gunSayisi: 31 },
+        { isim: "Haziran 2026", yil: 2026, ayNo: 5, gunSayisi: 30 },
+        { isim: "Temmuz 2026", yil: 2026, ayNo: 6, gunSayisi: 31 },
+        { isim: "Ağustos 2026", yil: 2026, ayNo: 7, gunSayisi: 31 },
+        { isim: "Eylül 2026", yil: 2026, ayNo: 8, gunSayisi: 30 },
+        { isim: "Ekim 2026", yil: 2026, ayNo: 9, gunSayisi: 31 },
+        { isim: "Kasım 2026", yil: 2026, ayNo: 10, gunSayisi: 30 },
+        { isim: "Aralık 2026", yil: 2026, ayNo: 11, gunSayisi: 31 },
+        // 2027 Yılı
+        { isim: "Ocak 2027", yil: 2027, ayNo: 0, gunSayisi: 31 },
+        { isim: "Şubat 2027", yil: 2027, ayNo: 1, gunSayisi: 28 },
+        { isim: "Mart 2027", yil: 2027, ayNo: 2, gunSayisi: 31 },
+        { isim: "Nisan 2027", yil: 2027, ayNo: 3, gunSayisi: 30 },
+        { isim: "Mayıs 2027", yil: 2027, ayNo: 4, gunSayisi: 31 },
+        { isim: "Haziran 2027", yil: 2027, ayNo: 5, gunSayisi: 30 },
+        { isim: "Temmuz 2027", yil: 2027, ayNo: 6, gunSayisi: 31 },
+        { isim: "Ağustos 2027", yil: 2027, ayNo: 7, gunSayisi: 31 },
+        { isim: "Eylül 2027", yil: 2027, ayNo: 8, gunSayisi: 30 },
+        { isim: "Ekim 2027", yil: 2027, ayNo: 9, gunSayisi: 31 },
+        { isim: "Kasım 2027", yil: 2027, ayNo: 10, gunSayisi: 30 },
+        { isim: "Aralık 2027", yil: 2027, ayNo: 11, gunSayisi: 31 }
+    ];
+    
+    let mevcutAyIndeks = 0; // İlk açılışta Ocak 2026'dan başlar
+
+    // Hando kategorilerin açık olduğunu tutan akıllı liste
+    let aktifFiltreler = { member: true, team: true, academic: true };
+
+    window.filtrele = function(tur) {
+        // Tıklanan türün durumunu tersine çevir (Açıksa kapat, kapalıysa aç)
+        aktifFiltreler[tur] = !aktifFiltreler[tur];
+        
+        // Butonun görselini güncelle (Pasifse rengini söndür)
+        const btn = document.getElementById('filter' + tur.charAt(0).toUpperCase() + tur.slice(1));
+        if (btn) {
+            if (aktifFiltreler[tur]) {
+                btn.classList.remove('pasif');
+                btn.innerHTML = btn.innerHTML.replace('✖️', '👁️');
+            } else {
+                btn.classList.add('pasif');
+                btn.innerHTML = btn.innerHTML.replace('👁️', '✖️');
+            }
+        }
+        
+        // Takvimi yeni filtrelere göre yeniden çiz
+        takvimiYenile();
+    }
+
+
+    // Form Açma / Kapatma
+    btnAdd.addEventListener('click', () => formModal.style.display = 'flex');
+    btnCancel.addEventListener('click', () => formModal.style.display = 'none');
+
+    // Aylar Arası Geçiş Butonları (Gelişmiş 24 Ay Döngüsü)
+    if (btnPrev) {
+        btnPrev.addEventListener('click', () => {
+            if (mevcutAyIndeks > 0) {
+                mevcutAyIndeks--;
+                takvimiYenile();
+            }
+        });
+    }
+
+    if (btnNext) {
+        btnNext.addEventListener('click', () => {
+            if (mevcutAyIndeks < aylar.length - 1) {
+                mevcutAyIndeks++;
+                takvimiYenile();
+            }
+        });
+    }
+
+    // Seçilen Kayıt Türüne Göre Dinamik Alanlar
+    typeSelect.addEventListener('change', (e) => {
+        if (e.target.value === 'member') {
+            dynamicFields.innerHTML = `
+                <label style="display:block; margin-bottom: 5px; font-weight: bold;">Ad Soyad:</label>
+                <input type="text" id="fullName" style="width: 95%; padding: 8px; margin-bottom: 15px;" required>
+                <label style="display:block; margin-bottom: 5px; font-weight: bold;">Üniversite / Fakülte / Bölüm:</label>
+                <input type="text" id="schoolInfo" placeholder="Örn: Selçuk Üni - Teknoloji" style="width: 95%; padding: 8px; margin-bottom: 15px;" required>
+            `;
+        } else if (e.target.value === 'team') {
+            dynamicFields.innerHTML = `
+                <label style="display:block; margin-bottom: 5px; font-weight: bold;">Takım Adı:</label>
+                <input type="text" id="teamName" placeholder="Örn: Yazılım Takımı" style="width: 95%; padding: 8px; margin-bottom: 15px;" required>
+            `;
+        } else {
+            dynamicFields.innerHTML = `
+                <label style="display:block; margin-bottom: 5px; font-weight: bold;">Akademik Takvim Başlığı:</label>
+                <input type="text" id="academicTitle" placeholder="Örn: Vize Haftası" style="width: 95%; padding: 8px; margin-bottom: 15px;" required>
+            `;
+        }
+    });
+
+    // YENİ VE HATASIZ AKILLI SİLME FONKSİYONU
+    async function gorevSil(id) {
+        try {
+            const responseGet = await fetch('/gorevleri-getir');
+            const gorevler = await responseGet.json();
+            const bulunangorev = gorevler.find(g => g.id === id);
+
+            if (bulunangorev) {
+                const orijinalAciklamalar = [
+                    'Güz Dönemi Ortak Zorunlu Derslerin Final Sınavı',
+                    'Güz Yarıyılı Dönem Sonu Sınavları',
+                    'Güz Dönemi Ortak Zorunlu Bütünleme',
+                    'Güz Yarıyılı Bütünleme Sınavları',
+                    'Bahar Yarıyılı Kayıt Yenileme Dönemi',
+                    'Ders Kayıtları Danışman Onay Dönemi',
+                    'Bahar Dönemi İlk Ders Günü',
+                    'Bahar Dönemi Ekle-Sil Günleri',
+                    'Bahar Dönemi Mazeretli Kayıt Başvurusu',
+                    'Bahar Dönemi Ek Sınav Bütünleme Sınavları',
+                    'Ortak Zorunlu Dersler Ara Sınavı',
+                    'Bahar Dönemi Vize Sınav Haftası',
+                    'Bahar Yarıyılı Son Ders Günü',
+                    'Ortak Zorunlu Dersler Final Sınavı',
+                    'Bahar Dönemi Dönem Sonu Sınavları',
+                    'Ortak Zorunlu Dersler Bütünleme Sınavı',
+                    'Bahar Dönemi Büt Haftası'
+                ];
+
+                // Eğer kök akademik takvimse silmeyi engelle
+                if (bulunangorev.recordType === 'academic' && orijinalAciklamalar.includes(bulunangorev.description)) {
+                    alert("🔒 Bu resmi kök akademik takvim sürecidir, sistem üzerinden silinemez!");
+                    return; 
+                }
+            }
+
+            // Normal bir görevse veya sonradan eklenen resmi tatilse onay iste ve sil
+            if (confirm("Bu görevi silmek istediğinize emin misiniz?")) {
+                const responseDel = await fetch(`/gorev-sil/${id}`, { method: 'DELETE' });
+                
+                if (responseDel.ok) { 
+                    // Sunucunun dosyayı yazması için 100ms bekleyip ekranı anında yeniliyoruz
+                    setTimeout(async () => {
+                        await takvimiYenile(); 
+                    }, 100);
+                }
+            }
+
+        } catch (error) {
+            alert("Silme işlemi sırasında teknik bir hata oluştu.");
+        }
+    }
+
+
+
+
+    // Ana Takvim Çizim Fonksiyonu (2026 ve 2027 Uyumlu)
+    async function takvimiYenile() {
+        const seciliAy = aylar[mevcutAyIndeks];
+        monthTitle.innerText = seciliAy.isim;
+
+        // Üst satırdaki gün sayılarını güncelle
+        const headerRow = document.querySelector('thead tr');
+        headerRow.innerHTML = '<th>Takip Listesi</th>';
+
+        // Bilgisayarın gerçek bugünkü tarihini alalım (18 Haziran 2026)
+        const bugun = new Date();
+        const bugunYil = bugun.getFullYear();
+        const bugunAy = bugun.getMonth();
+        const bugunGun = bugun.getDate();
+
+        for (let i = 1; i <= seciliAy.gunSayisi; i++) {
+            // Eğer takvimde bakılan yıl ve ay, gerçek bugünkü yıl ve aya eşitse VE gün i ise parlat!
+            if (seciliAy.yil === bugunYil && seciliAy.ayNo === bugunAy && i === bugunGun) {
+                headerRow.innerHTML += `<th class="today-highlight" title="Bugün">${i}</th>`;
+            } else {
+                headerRow.innerHTML += `<th>${i}</th>`;
+            }
+        }
+
+
+        try {
+            const response = await fetch('/gorevleri-getir');
+            const gorevler = await response.json();
+            
+            const tbody = document.querySelector('tbody');
+            tbody.innerHTML = ''; 
+
+            let gunlukGorevSayisi = new Array(seciliAy.gunSayisi + 1).fill(0);
+
+            // Görevleri gruplara ayıralım (Akademik olanlar ve olmayanlar)
+            const insanVeTakimGorevleri = [];
+            const akademikGorevler = [];
+
+            gorevler.forEach(gorev => {
+
+                // YENİ FİLTRE KONTROLÜ: Eğer bu kategorinin filtresi kapalıysa pas geç, ekrana çizme!
+                if (!aktifFiltreler[gorev.recordType]) {
+                    return;
+                }
+
+                const startNewDate = new Date((gorev.startDate || gorev.endDate) + "T00:00:00");
+                const endNewDate = new Date((gorev.endDate || gorev.startDate) + "T23:59:59");
+                
+                // Seçili aya uyuyorsa ilgili gruba atalım
+                if (startNewDate.getFullYear() === seciliAy.yil && (startNewDate.getMonth() === seciliAy.ayNo || endNewDate.getMonth() === seciliAy.ayNo)) {
+                    if (gorev.recordType === 'academic') {
+                        akademikGorevler.push({ gorev, startNewDate, endNewDate });
+                    } else {
+                        insanVeTakimGorevleri.push({ gorev, startNewDate, endNewDate });
+                    }
+                }
+            });
+
+            // Tabloya satırları çizen yardımcı fonksiyon
+            function satirCiz(item) {
+                const { gorev, startNewDate, endNewDate } = item;
+                const tr = document.createElement('tr');
+                const tdHeader = document.createElement('td');
+                tdHeader.className = `row-header group-${gorev.recordType}`;
+                
+                if (gorev.recordType === 'member') {
+                    tdHeader.innerHTML = `👤 ${gorev.displayName} <br><small>${gorev.schoolInfo}</small>`;
+                } else if (gorev.recordType === 'team') {
+                    tdHeader.innerHTML = `👥 ${gorev.displayName}`;
+                } else {
+                    tdHeader.innerHTML = `📅 ${gorev.displayName}`;
+                }
+                tr.appendChild(tdHeader);
+
+                for (let i = 1; i <= seciliAy.gunSayisi; i++) {
+                    const tdDay = document.createElement('td');
+                    const kBaslangic = new Date(seciliAy.yil, seciliAy.ayNo, i, 0, 0, 0);
+                    const kBitis = new Date(seciliAy.yil, seciliAy.ayNo, i, 23, 59, 59);
+                    
+                    if (kBitis >= startNewDate && kBaslangic <= endNewDate) {
+                        tdDay.classList.add('task-strip', `task-${gorev.recordType}`);
+                        tdDay.innerText = gorev.description; 
+                        tdDay.style.fontSize = '12px';
+                        tdDay.style.cursor = 'pointer';
+
+
+                        // Tarih formatını güzelleştirelim
+                        const tBas = new Date(gorev.startDate || gorev.endDate).toLocaleDateString('tr-TR');
+                        const tBit = new Date(gorev.endDate || gorev.startDate).toLocaleDateString('tr-TR');
+
+                        // Balonun içine yazılacak detaylı metni hazırlayalım
+                        let tooltipMetni = `📋 Süreç: ${gorev.description}\n📅 Tarih: ${tBas} - ${tBit}`;
+                        if (gorev.recordType === 'member') {
+                            tooltipMetni = `👤 Üye: ${gorev.displayName}\n🏫 Okul: ${gorev.schoolInfo}\n` + tooltipMetni;
+                        } else if (gorev.recordType === 'team') {
+                            tooltipMetni = `👥 Takım: ${gorev.displayName}\n` + tooltipMetni;
+                        }
+
+                        // AKILLI HAREKET EDEN BİLGİ KUTUSU KODLARI
+                        tdDay.addEventListener('mouseenter', () => {
+                            const tooltip = document.getElementById('canvasTooltip');
+                            if (tooltip) {
+                                tooltip.innerText = tooltipMetni;
+                                tooltip.style.display = 'block';
+                            }
+                        });
+
+                        tdDay.addEventListener('mousemove', (e) => {
+                            const tooltip = document.getElementById('canvasTooltip');
+                            if (tooltip) {
+                                tooltip.style.left = (e.clientX + 15) + 'px';
+                                tooltip.style.top = (e.clientY + 15) + 'px';
+                            }
+                        });
+
+                        tdDay.addEventListener('mouseleave', () => {
+                            const tooltip = document.getElementById('canvasTooltip');
+                            if (tooltip) {
+                                tooltip.style.display = 'none';
+                            }
+                        });
+
+
+                        tdDay.addEventListener('click', () => gorevSil(gorev.id));
+                        
+                        if (gorev.recordType !== 'academic') { gunlukGorevSayisi[i]++; }
+                    }
+                    tr.appendChild(tdDay);
+                }
+                tbody.appendChild(tr);
+            }
+
+            // ÖNCE İNSAN VE TAKIMLARI ÇİZELİM (Her zaman üstte olacaklar)
+            insanVeTakimGorevleri.forEach(item => satirCiz(item));
+
+            // SONRA AKADEMİK TAKVİMİ ÇİZELİM (Her zaman altta olacaklar)
+            akademikGorevler.forEach(item => satirCiz(item));
+
+
+            // En alta ortak müsaitlik satırını ekle
+            const newAvRow = document.createElement('tr');
+            newAvRow.className = "availability-row";
+            newAvRow.innerHTML = '<td>🧭 Ortak Müsaitlik</td>';
+            
+            for (let i = 1; i <= seciliAy.gunSayisi; i++) {
+                if (gunlukGorevSayisi[i] === 0) {
+                    newAvRow.innerHTML += '<td class="status-available">Müsait</td>';
+                } else {
+                    newAvRow.innerHTML += `<td class="status-busy">⚠️ ${gunlukGorevSayisi[i]} Meşgul</td>`;
+                }
+            }
+
+            tbody.appendChild(newAvRow);
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+            // Form Gönderme İşlemi
+        const taskForm = document.getElementById('taskForm');
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const recordType = typeSelect.value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const description = document.getElementById('description').value;
+            
+            if (!startDate && !endDate) {
+                alert("Lütfen başlangıç veya bitiş tarihlerinden en az bir tanesini giriniz!");
+                return;
+            }
+
+            if (!description.trim()) {
+                alert("Lütfen görev açıklamasını yazınız!");
+                return;
+            }
+
+            let displayName = "";
+            let schoolInfo = "";
+
+            if (recordType === 'member') {
+                displayName = document.getElementById('fullName').value;
+                schoolInfo = document.getElementById('schoolInfo').value;
+            } else if (recordType === 'team') {
+                displayName = document.getElementById('teamName').value;
+            } else if (recordType === 'academic') {
+                displayName = document.getElementById('academicTitle').value;
+            }
+
+            const data = { recordType, displayName, schoolInfo, startDate, endDate, description };
+
+            try {
+                const response = await fetch('/gorev-ekle', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+            
+                if (response.ok) {
+                    formModal.style.display = 'none'; 
+                    taskForm.reset(); 
+                
+                    // Form alanlarını ilk temiz haline getirelim
+                    typeSelect.value = 'member';
+                    dynamicFields.innerHTML = `
+                        <label style="display:block; margin-bottom: 5px; font-weight: bold;">Ad Soyad:</label>
+                        <input type="text" id="fullName" style="width: 95%; padding: 8px; margin-bottom: 15px;" required>
+                        <label style="display:block; margin-bottom: 5px; font-weight: bold;">Üniversite / Fakülte / Bölüm:</label>
+                        <input type="text" id="schoolInfo" placeholder="Örn: Selçuk Üni" style="width: 95%; padding: 8px; margin-bottom: 15px;" required>
+                    `;
+                
+                    // Takvimi anında yenileyelim
+                    await takvimiYenile(); 
+                }
+            } catch (error) {
+                alert('Sunucu hatası!');
+            }
+
+        });
+
+        // Akademik Takvimi Yükle Butonunun Çalışma Kodu
+        const btnLoadAcademic = document.getElementById('btnLoadAcademic');
+        if (btnLoadAcademic) {
+            btnLoadAcademic.addEventListener('click', async () => {
+                if (confirm("Okulun akademik takvim verileri otomatik olarak eklensin mi?")) {
+                    try {
+                        const response = await fetch('/akademik-takvim-yukle', { method: 'POST' });
+                        if (response.ok) {
+                            alert("Akademik takvim başarıyla yüklendi!");
+                            await takvimiYenile(); 
+                        }
+                    } catch (error) {
+                        alert("Yükleme sırasında bir hata oluştu.");
+                    }
+                }
+            });
+        }
+
+        // İlk açılışta takvimi çalıştır
+        takvimiYenile();
+
+    // Butonlara basınca takvimi sağa-sola kaydıran fonksiyon
+    window.takvimiKaydir = function(yon) {
+        const konteynir = document.querySelector('.calendar-container');
+        if (konteynir) {
+            if (yon === 'sol') {
+                // Sola 300 piksel kaydırır
+                konteynir.scrollBy({ left: -300, behavior: 'smooth' });
+            } else {
+                // Sağa 300 piksel kaydırır
+                konteynir.scrollBy({ left: 300, behavior: 'smooth' });
+            }
+        }
+    }
+
+
+
+</script>
+
+</body>
+</html>
