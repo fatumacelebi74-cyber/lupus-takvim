@@ -31,17 +31,18 @@ function takimlariKaydet() { fs.writeFileSync(TAKIM_DOSYASI, JSON.stringify(taki
 
 app.get('/', (req, res) => { res.sendFile(path.join(__dirname, 'index.html')); });
 
-// --- Gelişmiş Takım API'leri ---
+// --- 👥 GELİŞMİŞ TAKIM API'LERİ ---
 app.get('/takimlari-getir', (req, res) => { res.json(takimlarListesi); });
 
 app.post('/takim-ekle', (req, res) => {
     const yeniTakim = req.body;
+    if (!yeniTakim.takimAdi) return res.status(400).send("Takım adı boş olamaz!");
     const isim = yeniTakim.takimAdi.trim();
     
-    // 🎯 KONTROL: Aynı isimde takım var mı?
+    // 🎯 KONTROL: Aynı isimde takım şirket havuzunda zaten var mı?
     const varMi = takimlarListesi.some(t => t.takimAdi.toLowerCase() === isim.toLowerCase());
     if (varMi) {
-        return res.status(400).send("Bu takım zaten sistemde kayıtlı!");
+        return res.status(400).send("Bu takım zaten şirket bünyesinde kayıtlı!");
     }
 
     yeniTakim.takimAdi = isim;
@@ -51,50 +52,78 @@ app.post('/takim-ekle', (req, res) => {
     res.sendStatus(200);
 });
 
-// 🎯 YENİ: Takımı Havuzdan Kökten Silme
 app.delete('/takim-sil/:id', (req, res) => {
     const silinecekId = req.params.id;
     const bulunanTakim = takimlarListesi.find(t => t.id === silinecekId);
     
     if (bulunanTakim) {
-        // Takım silindiğinde ona bağlı görevler de temizlensin
-        gorevlerListesi = gorevlerListesi.filter(g => g.takimAdi !== bulunanTakim.takimAdi && g.displayName !== bulunanTakim.takimAdi);
+        // Takım silindiğinde o takıma ait girilmiş ortak takım süreçleri takvimden temizlenir
+        gorevlerListesi = gorevlerListesi.filter(g => g.recordType === 'team' ? g.displayName !== bulunanTakim.takimAdi : g.takimAdi !== bulunanTakim.takimAdi);
+        
+        // Üyelerin çoklu takımlar listesinden bu silinen takım adı düşürülür
+        uyelerListesi.forEach(u => {
+            if (u.takimlar) { u.takimlar = u.takimlar.filter(t => t !== bulunanTakim.takimAdi); }
+        });
+        
         takimlarListesi = takimlarListesi.filter(t => t.id !== silinecekId);
         takimlariKaydet();
+        uyeleriKaydet();
         gorevleriKaydet();
     }
     res.sendStatus(200);
 });
 
 
-// --- Gelişmiş Üye API'leri ---
+// --- 👤 GELİŞMİŞ ÇOKLU TAKIM DESTEKLİ ÜYE API'LERİ ---
 app.get('/uyeleri-getir', (req, res) => { res.json(uyelerListesi); });
 
+app.post('/browse/uye-ekle', (req, res) => { res.sendStatus(404); }); // Eski bağımlı rotaları körletiyoruz
+
+// 🎯 DEĞİŞKEN HATASI DÜZELTİLMİŞ EN GÜVENLİ PERSONEL KAYIT MOTORU
 app.post('/uye-ekle', (req, res) => {
-    const yeniUye = req.body;
-    const isim = yeniUye.adSoyad.trim();
+    try {
+        const yeniUye = req.body;
+        if (!yeniUye || !yeniUye.adSoyad) {
+            return res.status(400).send("Personel adı boş olamaz!");
+        }
+        
+        const isim = yeniUye.adSoyad.trim();
+        // 🎯 Değişkeni burada hatasız ve temiz bir şekilde tanımlıyoruz:
+        const gonderilenTakimlar = Array.isArray(yeniUye.takimlar) ? yeniUye.takimlar : [];
 
-    // 🎯 KONTROL: Aynı isimde üye var mı?
-    const varMi = uyelerListesi.some(u => u.adSoyad.toLowerCase() === isim.toLowerCase());
-    if (varMi) {
-        return res.status(400).send("Bu üye zaten sistemde kayıtlı!");
+        // Personel havuzda zaten var mı kontrolü
+        const varOlanIndex = uyelerListesi.findIndex(u => u.adSoyad.toLowerCase() === isim.toLowerCase());
+
+        if (varOlanIndex !== -1) {
+            uyelerListesi[varOlanIndex].takimlar = gonderilenTakimlar;
+            uyeleriKaydet();
+            return res.status(200).send("güncellendi");
+        }
+
+        // Yoksa sıfırdan ekle
+        const uModel = {
+            adSoyad: isim,
+            takimlar: gonderilenTakimlar,
+            id: "uye_" + Date.now().toString()
+        };
+        
+        uyelerListesi.push(uModel);
+        uyeleriKaydet();
+        return res.status(200).send("eklendi");
+    } catch (err) {
+        console.error("❌ Sunucu İç Hatası:", err);
+        return res.status(500).send("Sunucu hatası");
     }
-
-    yeniUye.adSoyad = isim;
-    yeniUye.id = "uye_" + Date.now().toString();
-    uyelerListesi.push(yeniUye);
-    uyeleriKaydet();
-    res.sendStatus(200);
 });
 
-// 🎯 YENİ: Üyeyi Havuzdan Kökten Silme
+
 app.delete('/uye-sil/:id', (req, res) => {
     const silinecekId = req.params.id;
     const bulunanUye = uyelerListesi.find(u => u.id === silinecekId);
     
     if (bulunanUye) {
-        // Üye silindiğinde ona ait görevler de takvimden temizlensin
-        gorevlerListesi = gorevlerListesi.filter(g => g.displayName !== bulunanUye.adSoyad);
+        // Personel silindiğinde takvimdeki ona ait tüm bireysel görevler temizlenir
+        gorevlerListesi = gorevlerListesi.filter(g => g.recordType === 'member' ? g.displayName !== bulunanUye.adSoyad : true);
         uyelerListesi = uyelerListesi.filter(u => u.id !== silinecekId);
         uyeleriKaydet();
         gorevleriKaydet();
@@ -103,8 +132,9 @@ app.delete('/uye-sil/:id', (req, res) => {
 });
 
 
-// --- Görev API'leri ---
+// --- 📅 GÖREV / SÜREÇ PLANLAMA API'LERİ ---
 app.get('/gorevleri-getir', (req, res) => { res.json(gorevlerListesi); });
+
 app.post('/gorev-ekle', (req, res) => {
     const yeniGorev = req.body;
     yeniGorev.id = Date.now().toString() + Math.random().toString().substring(2, 6);
@@ -112,6 +142,7 @@ app.post('/gorev-ekle', (req, res) => {
     gorevleriKaydet(); 
     res.sendStatus(200);
 });
+
 app.delete('/gorev-sil/:id', (req, res) => {
     const silinecekId = req.params.id;
     gorevlerListesi = gorevlerListesi.filter(gorev => gorev.id !== silinecekId);
@@ -120,5 +151,5 @@ app.delete('/gorev-sil/:id', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Sunucu kökten silme desteği ile çalışıyor! Port: ${PORT}`);
+    console.log(`🚀 Şirketsel ERP Paneli Altyapısı Aktif! Port: ${PORT}`);
 });
