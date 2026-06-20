@@ -33,54 +33,6 @@
   },
   {
     "recordType": "academic",
-    "displayName": "🎓 Kayıt Yenileme (Bahar)",
-    "startDate": "2026-01-26",
-    "endDate": "2026-02-02",
-    "description": "Bahar Yarıyılı Kayıt Yenileme Dönemi",
-    "id": "17816348264535139"
-  },
-  {
-    "recordType": "academic",
-    "displayName": "📋 Danışman Onayı (Bahar)",
-    "startDate": "2026-01-26",
-    "endDate": "2026-02-04",
-    "description": "Ders Kayıtları Danışman Onay Dönemi",
-    "id": "17816348264533888"
-  },
-  {
-    "recordType": "academic",
-    "displayName": "📚 Derslerin Başlaması (Bahar)",
-    "startDate": "2026-02-02",
-    "endDate": "2026-02-02",
-    "description": "Bahar Dönemi İlk Ders Günü",
-    "id": "17816348264539294"
-  },
-  {
-    "recordType": "academic",
-    "displayName": "🔄 Ders Ekleme - Bırakma",
-    "startDate": "2026-02-05",
-    "endDate": "2026-02-06",
-    "description": "Bahar Dönemi Ekle-Sil Günleri",
-    "id": "17816348264539219"
-  },
-  {
-    "recordType": "academic",
-    "displayName": "❌ Mazeretli Geç Kayıt Son Başvuru",
-    "startDate": "2026-02-13",
-    "endDate": "2026-02-13",
-    "description": "Bahar Dönemi Mazeretli Kayıt Başvurusu",
-    "id": "17816348264532489"
-  },
-  {
-    "recordType": "academic",
-    "displayName": "🔄 Bahar Ek Sınav Bütünlemesi",
-    "startDate": "2026-02-16",
-    "endDate": "2026-02-20",
-    "description": "Bahar Dönemi Ek Sınav Bütünleme Sınavları",
-    "id": "17816348264535513"
-  },
-  {
-    "recordType": "academic",
     "displayName": "📅 Ortak Zorunlu Vize Sınavı",
     "startDate": "2026-03-30",
     "endDate": "2026-03-30",
@@ -94,14 +46,6 @@
     "endDate": "2026-04-05",
     "description": "Bahar Dönemi Vize Sınav Haftası",
     "id": "17816348264534201"
-  },
-  {
-    "recordType": "academic",
-    "displayName": "📚 Derslerin Bitişi (Bahar)",
-    "startDate": "2026-05-22",
-    "endDate": "2026-05-22",
-    "description": "Bahar Yarıyılı Son Ders Günü",
-    "id": "17816348264534650"
   },
   {
     "recordType": "academic",
