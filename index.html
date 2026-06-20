@@ -892,11 +892,29 @@
 
         // 5. GÖREV / SÜREÇ EKLEME FORMU AKILLI KONTROL SİSTEMİ
     
-    // Büyük mavi "+ Görev / Süreç Ekle" butonuna basınca formu açar
+    // 🎯 İLK AÇILIŞTA KUTULARI ANINDA VAR EDEN VE DOLDURAN AKILLI BUTON TETİKLEYİCİSİ
     btnAdd.addEventListener('click', async () => {
+        // 1. Form penceresini görünür yapıyoruz
         formModal.style.display = 'flex';
-        await formVerileriniYukle(); // Seçim listelerini sunucudan taze doldurur
+        
+        // 2. İlk açılışta varsayılan olarak Üye Bireysel Görevi seçili olduğu için o kutuları içeriye anında basıyoruz
+        dynamicFields.innerHTML = `
+            <label style="display:block; margin-bottom: 6px; font-weight: bold; font-size: 13px; color:#1e293b;">İlgili Takım / Ekip (İsteğe Bağlı):</label>
+            <select id="teamSelect" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px;">
+                <option value="">-- Takım Seçmeden Bağımsız Ekle --</option>
+            </select>
+            <div id="uyeSecimAlani">
+                <label style="display:block; margin-bottom: 6px; font-weight: bold; font-size: 13px; color:#1e293b;">Görevlendirilen Personel:</label>
+                <select id="userSelect" style="width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px;" required>
+                    <option value="">Yükleniyor...</option>
+                </select>
+            </div>
+        `;
+        
+        // 3. Kutular artık sayfada var olduğu için sunucudan verileri çekip içlerini salisesinde dolduruyoruz
+        await formVerileriniYukle();
     });
+
     
     // İptal butonuna basınca formu kapatır ve ilk durumuna (Bireysel görev) sıfırlar
     btnCancel.addEventListener('click', () => {
@@ -942,12 +960,10 @@
     });
 
 
-    // Sunucudan Güncel Takım ve Üyeleri Çekip Form Açılır Menülerine (Select) Dolduran Fonksiyon
+    // 🎯 YENİ SÜRÜM: FORM İLK AÇILDIĞINDA LİSTELERİ ANINDA DOLDURAN AKILLI SİHİRBAZ
     async function formVerileriniYukle() {
-        const teamSelect = document.getElementById('teamSelect');
-        const userSelect = document.getElementById('userSelect');
-        
         try {
+            // Sunucudan güncel takımları ve üyeleri tek seferde çekiyoruz
             const [resTakim, resUye] = await Promise.all([
                 fetch('/takimlari-getir'),
                 fetch('/uyeleri-getir')
@@ -955,27 +971,38 @@
             const takimlar = await resTakim.json();
             const uyeler = await resUye.json();
 
-            // 1. Takım Seçim Listesini Doldurma
+            const teamSelect = document.getElementById('teamSelect');
+            const userSelect = document.getElementById('userSelect');
+            
+            // 1. Takım Seçim Listesini Kusursuzca Doldurma
             if (teamSelect) {
                 if (takimlar.length === 0) {
                     teamSelect.innerHTML = '<option value="">-- Şirket Havuzundan Takım Ekleyin! --</option>';
                 } else {
-                    teamSelect.innerHTML = '<option value="">-- Takım Seçin --</option>';
-                    takimlar.forEach(t => { teamSelect.innerHTML += `<option value="${t.takimAdi}">${t.takimAdi}</option>`; });
+                    // İlk seçeneği esnek bireysel göreve uygun olarak ayarlıyoruz
+                    teamSelect.innerHTML = '<option value="">-- Takım Seçmeden Bağımsız Ekle --</option>';
+                    takimlar.forEach(t => { 
+                        teamSelect.innerHTML += `<option value="${t.takimAdi}">${t.takimAdi}</option>`; 
+                    });
                 }
             }
             
-            // 2. Üye Seçim Listesini Doldurma
+            // 2. Üye/Personel Seçim Listesini Kusursuzca Doldurma
             if (userSelect) {
                 if (uyeler.length === 0) {
                     userSelect.innerHTML = '<option value="">-- Şirket Havuzundan Personel Ekleyin! --</option>';
                 } else {
                     userSelect.innerHTML = '<option value="">-- Personel Seçin --</option>';
-                    uyeler.forEach(u => { userSelect.innerHTML += `<option value="${u.adSoyad}">${u.adSoyad}</option>`; });
+                    uyeler.forEach(u => { 
+                        userSelect.innerHTML += `<option value="${u.adSoyad}">${u.adSoyad}</option>`; 
+                    });
                 }
             }
-        } catch (e) { console.error("Form seçim listeleri doldurulamadı:", e); }
+        } catch (e) { 
+            console.error("Form seçim listeleri doldurulurken teknik hata oluştu:", e); 
+        }
     }
+
 
         // 6. HÜCRE İÇİ HIZLI EKLEME (+) VE FORM KAYDETME FONKSİYONLARI
 
