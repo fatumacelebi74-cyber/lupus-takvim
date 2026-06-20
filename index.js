@@ -15,15 +15,26 @@ let gorevlerListesi = [];
 let uyelerListesi = [];
 let takimlarListesi = [];
 
+// 🎯 YENİ: DOSYA OKUMA MOTORUNU VE VERİLERİ KORUYAN GÜVENLİ ALTYAPI
 if (fs.existsSync(VERI_DOSYASI)) {
-    try { gorevlerListesi = JSON.parse(fs.readFileSync(VERI_DOSYASI, 'utf8')); } catch (e) { gorevlerListesi = []; }
+    try { 
+        const veri = fs.readFileSync(VERI_DOSYASI, 'utf8').trim();
+        gorevlerListesi = veri ? JSON.parse(veri) : []; 
+    } catch (e) { console.error("⚠️ Görevler dosyası okunamadı, sıfırlandı:", e); gorevlerListesi = []; }
 }
 if (fs.existsSync(UYE_DOSYASI)) {
-    try { uyelerListesi = JSON.parse(fs.readFileSync(UYE_DOSYASI, 'utf8')); } catch (e) { uyelerListesi = []; }
+    try { 
+        const veri = fs.readFileSync(UYE_DOSYASI, 'utf8').trim();
+        uyelerListesi = veri ? JSON.parse(veri) : []; 
+    } catch (e) { console.error("⚠️ Üyeler dosyası okunamadı, sıfırlandı:", e); uyelerListesi = []; }
 }
 if (fs.existsSync(TAKIM_DOSYASI)) {
-    try { takimlarListesi = JSON.parse(fs.readFileSync(TAKIM_DOSYASI, 'utf8')); } catch (e) { takimlarListesi = []; }
+    try { 
+        const veri = fs.readFileSync(TAKIM_DOSYASI, 'utf8').trim();
+        takimlarListesi = veri ? JSON.parse(veri) : []; 
+    } catch (e) { console.error("⚠️ Takımlar dosyası okunamadı, sıfırlandı:", e); takimlarListesi = []; }
 }
+
 
 function gorevleriKaydet() { fs.writeFileSync(VERI_DOSYASI, JSON.stringify(gorevlerListesi, null, 2), 'utf8'); }
 function uyeleriKaydet() { fs.writeFileSync(UYE_DOSYASI, JSON.stringify(uyelerListesi, null, 2), 'utf8'); }
